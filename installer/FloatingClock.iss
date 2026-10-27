@@ -1,21 +1,29 @@
 ; Floating Clock — Inno Setup installer script
 ; Builds a clean Windows installer with optional desktop & startup shortcuts
 
+#define MyAppName "Floating Clock"
+#define MyAppVersion "1.0.0"
+#define MyAppPublisher "FloatingClock"
+#define MyAppExeName "FloatingClock.exe"
+
 [Setup]
-AppName=Floating Clock
-AppVersion=1.0.0
-AppVerName=Floating Clock 1.0.0
-AppPublisher=FloatingClock
-DefaultDirName={autopf}\Floating Clock
-DefaultGroupName=Floating Clock
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+DefaultDirName={autopf}\{#MyAppName}
+DefaultGroupName={#MyAppName}
 OutputDir=..\output
-OutputBaseFilename=FloatingClockSetup
+OutputBaseFilename=FloatingClockSetup-v{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern
 SetupIconFile=..\src\FloatingClock\Assets\app.ico
-UninstallDisplayIcon={app}\FloatingClock.exe
+UninstallDisplayIcon={app}\{#MyAppExeName}
+VersionInfoVersion=1.0.0.0
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoDescription=Floating Clock Setup
 CloseApplications=yes
 RestartApplications=no
 PrivilegesRequired=lowest
@@ -25,14 +33,14 @@ DisableProgramGroupPage=yes
 Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Floating Clock";           Filename: "{app}\FloatingClock.exe"
-Name: "{group}\Uninstall Floating Clock";  Filename: "{uninstallexe}"
-Name: "{autodesktop}\Floating Clock";      Filename: "{app}\FloatingClock.exe"; Tasks: desktopicon
-Name: "{userstartup}\Floating Clock";      Filename: "{app}\FloatingClock.exe"; Tasks: startupicon
+Name: "{group}\{#MyAppName}";           Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#MyAppName}";     Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{userstartup}\{#MyAppName}";     Filename: "{app}\{#MyAppExeName}"; Tasks: startupicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut";   GroupDescription: "Additional shortcuts:"
 Name: "startupicon"; Description: "Start with &Windows";          GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\FloatingClock.exe"; Description: "Launch Floating Clock"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent

@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Version
+        id: get_version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $ver = "${{ github.event.inputs.version }}".TrimStart('v')
+          } else {
+            $ver = "${{ github.ref_name }}".TrimStart('v')
+          }
+          Write-Output "VERSION=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Releasing version: $ver"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            9.0.x
+          dotnet-quality: 'preview'
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $isccPath)) {
+            $isccPath = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
+          }
+          Write-Host "ISCC located at: $isccPath"
+          echo "ISCC_PATH=$isccPath" >> $env:GITHUB_ENV
+
+      - name: Build and Package Installer
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.get_version.outputs.VERSION }}"
+          $project = "src\FloatingClock\FloatingClock.csproj"
+          $publish = "publish"
+          $output = "output"
+          
+          # Clean
+          if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
+          if (Test-Path $output) { Remove-Item $output -Recurse -Force }
+          
+          # Publish
+          dotnet publish $project -c Release -o $publish --self-contained false /p:Version=$ver
+          
+          # Inno Setup
+          & "$env:ISCC_PATH" /DMyAppVersion=$ver "installer\FloatingClock.iss"
+          
+          Get-ChildItem -Path output
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Floating Clock v${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            output/FloatingClockSetup-v*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

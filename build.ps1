@@ -1,5 +1,9 @@
 # Floating Clock — Build & Package Script
-# Usage: .\build.ps1
+# Usage: .\build.ps1 [-Version <string>]
+param(
+    [string]$Version = "1.0.0"
+)
+
 $ErrorActionPreference = "Stop"
 
 $Root       = $PSScriptRoot
@@ -9,7 +13,7 @@ $OutputDir  = Join-Path $Root "output"
 $ISCC       = "C:\Users\SlimShady\AppData\Local\Programs\Inno Setup 6\ISCC.exe"
 $IssFile    = Join-Path $Root "installer\FloatingClock.iss"
 
-Write-Host "`n=== Floating Clock Build ===" -ForegroundColor Cyan
+Write-Host "`n=== Floating Clock Build v$Version ===" -ForegroundColor Cyan
 
 # ── Clean ──
 Write-Host "[1/3] Cleaning…" -ForegroundColor Yellow
@@ -18,17 +22,18 @@ if (Test-Path $OutputDir)  { Remove-Item $OutputDir  -Recurse -Force }
 
 # ── Publish (framework-dependent) ──
 Write-Host "[2/3] Publishing…" -ForegroundColor Yellow
-dotnet publish $Project -c Release -o $PublishDir --self-contained false
+dotnet publish $Project -c Release -o $PublishDir --self-contained false /p:Version=$Version
 if ($LASTEXITCODE -ne 0) { Write-Host "Publish FAILED." -ForegroundColor Red; exit 1 }
 
 # ── Installer ──
 if (Test-Path $ISCC) {
     Write-Host "[3/3] Building installer…" -ForegroundColor Yellow
-    & $ISCC $IssFile
+    & $ISCC /DMyAppVersion=$Version $IssFile
     if ($LASTEXITCODE -ne 0) { Write-Host "Installer FAILED." -ForegroundColor Red; exit 1 }
-    Write-Host "`nInstaller → $OutputDir\FloatingClockSetup.exe" -ForegroundColor Green
+    $installerExe = Join-Path $OutputDir "FloatingClockSetup-v$Version.exe"
+    Write-Host "`nInstaller → $installerExe" -ForegroundColor Green
 } else {
-    Write-Host "[3/3] Inno Setup not found – skipping installer." -ForegroundColor Yellow
+    Write-Host "[3/3] Inno Setup not found at $ISCC – skipping installer." -ForegroundColor Yellow
 }
 
 Write-Host "`n=== Done ===" -ForegroundColor Cyan
