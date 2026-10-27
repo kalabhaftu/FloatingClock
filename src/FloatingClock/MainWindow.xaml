@@ -1,0 +1,203 @@
+<Window x:Class="FloatingClock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:FloatingClock.Controls"
+        Title="Floating Clock"
+        Icon="/Assets/app.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MinWidth="200" MinHeight="110"
+        Width="640" Height="320"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="6"
+                      CornerRadius="16"
+                      GlassFrameThickness="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem x:Name="AlwaysOnTopMenuItem" Header="Always On Top"
+                      IsCheckable="True" IsChecked="True"
+                      Click="AlwaysOnTop_Click"/>
+            <Separator/>
+            <MenuItem Header="Theme">
+                <MenuItem x:Name="DarkThemeMenuItem"   Header="Dark"   Click="Theme_Click" Tag="Dark"/>
+                <MenuItem x:Name="LightThemeMenuItem"  Header="Light"  Click="Theme_Click" Tag="Light"/>
+                <MenuItem x:Name="SystemThemeMenuItem" Header="System" Click="Theme_Click" Tag="System"/>
+            </MenuItem>
+            <MenuItem Header="Format">
+                <MenuItem x:Name="TwelveHourMenuItem"     Header="12 Hour" Click="Format_Click" Tag="Twelve"/>
+                <MenuItem x:Name="TwentyFourHourMenuItem"  Header="24 Hour" Click="Format_Click" Tag="TwentyFour"/>
+            </MenuItem>
+            <Separator/>
+            <MenuItem Header="Timezones…" Click="Timezones_Click"/>
+            <MenuItem Header="Open Log Folder" Click="OpenLogFolder_Click"/>
+            <Separator/>
+            <MenuItem Header="Exit" Click="Exit_Click"/>
+        </ContextMenu>
+    </Window.ContextMenu>
+
+    <!-- Outer Rounded Shell with subtle border -->
+    <Border CornerRadius="16"
+            Background="{DynamicResource WindowBackground}"
+            BorderBrush="{DynamicResource SettingsBorder}"
+            BorderThickness="1"
+            ClipToBounds="True">
+        <Grid>
+            <!-- ═══ Main Clock Layout ═══ -->
+            <Grid Margin="10,6,10,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ═══ Left: Hours ═══ -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" x:Name="DateText"
+                               Text="10/27/26"
+                               FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource InfoForeground}"
+                               HorizontalAlignment="Center" Margin="0,2,0,3"/>
+
+                    <controls:FlipCard Grid.Row="1" x:Name="HoursCard"/>
+
+                    <TextBlock Grid.Row="2" x:Name="AmPmText"
+                               Text="AM"
+                               FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource InfoForeground}"
+                               HorizontalAlignment="Left" Margin="4,3,0,1"/>
+                </Grid>
+
+                <!-- ═══ Right: Minutes ═══ -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" x:Name="DayText"
+                               Text="Wednesday"
+                               FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource InfoForeground}"
+                               HorizontalAlignment="Center" Margin="0,2,0,3"/>
+
+                    <controls:FlipCard Grid.Row="1" x:Name="MinutesCard"/>
+
+                    <Grid Grid.Row="2">
+                        <TextBlock x:Name="TimezoneText" Text=""
+                                   FontFamily="Segoe UI" FontSize="11"
+                                   Foreground="{DynamicResource InfoForeground}"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   Margin="4,3,25,1"/>
+                        <TextBlock x:Name="SecondsText" Text="00"
+                                   FontFamily="Segoe UI" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource InfoForeground}"
+                                   HorizontalAlignment="Right" Margin="0,3,4,1"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- ═══ Top Hover Control Bar ═══ -->
+            <Border x:Name="TopControlBar"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    Margin="0,8,8,0"
+                    Opacity="0"
+                    Background="Transparent"
+                    IsHitTestVisible="True">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsMouseOver}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="0:0:0.25"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <Border Background="{DynamicResource CardBackground}"
+                        BorderBrush="{DynamicResource SettingsBorder}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="3"
+                        Opacity="0.95">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Direction="270"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Pin / Always On Top Button -->
+                        <Button x:Name="PinButton"
+                                Style="{StaticResource TopActionButton}"
+                                ToolTip="Toggle Always On Top"
+                                Click="PinButton_Click">
+                            <Path x:Name="PinPath"
+                                  Data="M 6,2 L 10,2 L 9,5 L 11,8 L 9,8 L 9,13 L 7,13 L 7,8 L 5,8 L 7,5 Z"
+                                  Fill="{DynamicResource AccentBrush}"
+                                  Stretch="Uniform" Width="12" Height="12"/>
+                        </Button>
+
+                        <!-- Settings Button -->
+                        <Button Style="{StaticResource TopActionButton}"
+                                ToolTip="Settings &amp; Timezones"
+                                Click="Timezones_Click"
+                                Margin="3,0,0,0">
+                            <!-- Gear Icon -->
+                            <Path Data="M 12,15.5 A 3.5,3.5 0 1 0 12,8.5 A 3.5,3.5 0 0 0 12,15.5 M 19.4,13 C 19.4,12.7 19.5,12.3 19.5,12 C 19.5,11.7 19.4,11.3 19.4,11 L 21.5,9.3 C 21.7,9.1 21.8,8.8 21.6,8.6 L 19.6,5.1 C 19.5,4.9 19.2,4.8 19,4.9 L 16.5,5.9 C 16,5.5 15.4,5.2 14.8,5 L 14.4,2.3 C 14.4,2.1 14.2,1.9 13.9,1.9 L 10,1.9 C 9.7,1.9 9.5,2.1 9.5,2.3 L 9.1,5 C 8.5,5.2 8,5.5 7.4,5.9 L 4.9,4.9 C 4.7,4.8 4.4,4.9 4.3,5.1 L 2.3,8.6 C 2.2,8.8 2.2,9.1 2.4,9.3 L 4.5,11 C 4.5,11.3 4.4,11.7 4.4,12 C 4.4,12.3 4.5,12.7 4.5,13 L 2.4,14.7 C 2.2,14.9 2.1,15.2 2.3,15.4 L 4.3,18.9 C 4.4,19.1 4.7,19.2 4.9,19.1 L 7.4,18.1 C 8,18.5 8.5,18.8 9.1,19 L 9.5,21.7 C 9.5,21.9 9.7,22.1 10,22.1 L 13.9,22.1 C 14.2,22.1 14.4,21.9 14.4,21.7 L 14.8,19 C 15.4,18.8 16,18.5 16.5,18.1 L 19,19.1 C 19.2,19.2 19.5,19.1 19.6,18.9 L 21.6,15.4 C 21.7,15.2 21.7,14.9 21.5,14.7 Z"
+                                  Fill="{DynamicResource InfoForeground}"
+                                  Stretch="Uniform" Width="12" Height="12"/>
+                        </Button>
+
+                        <!-- Minimize Button -->
+                        <Button Style="{StaticResource TopActionButton}"
+                                ToolTip="Minimize"
+                                Click="MinimizeButton_Click"
+                                Margin="3,0,0,0">
+                            <!-- Minus Icon -->
+                            <Rectangle Width="9" Height="1.6" Fill="{DynamicResource InfoForeground}"/>
+                        </Button>
+
+                        <!-- Close Button -->
+                        <Button Style="{StaticResource TopCloseButton}"
+                                ToolTip="Close"
+                                Click="Exit_Click"
+                                Margin="3,0,0,0">
+                            <!-- X Icon -->
+                            <Path Data="M 2,2 L 10,10 M 10,2 L 2,10"
+                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                  StrokeThickness="1.5"
+                                  Stretch="Uniform" Width="9" Height="9"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

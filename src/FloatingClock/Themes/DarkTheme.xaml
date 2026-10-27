@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Window -->
+    <SolidColorBrush x:Key="WindowBackground"    Color="#FF000000"/>
+
+    <!-- Cards -->
+    <SolidColorBrush x:Key="CardBackground"       Color="#FF1C1C1E"/>
+    <SolidColorBrush x:Key="CardDivider"           Color="#FF0A0A0C"/>
+
+    <!-- Digits & info -->
+    <SolidColorBrush x:Key="DigitForeground"       Color="#FFA8A8A8"/>
+    <SolidColorBrush x:Key="InfoForeground"         Color="#FF808080"/>
+
+    <!-- Settings / dialogs -->
+    <SolidColorBrush x:Key="SettingsBackground"    Color="#FF1C1C1E"/>
+    <SolidColorBrush x:Key="SettingsForeground"    Color="#FFE0E0E0"/>
+    <SolidColorBrush x:Key="SettingsBorder"         Color="#FF3A3A3C"/>
+
+    <!-- Buttons -->
+    <SolidColorBrush x:Key="ButtonBackground"       Color="#FF3A3A3C"/>
+    <SolidColorBrush x:Key="ButtonForeground"       Color="#FFE0E0E0"/>
+    <SolidColorBrush x:Key="ButtonHoverBackground"  Color="#FF505052"/>
+    <SolidColorBrush x:Key="AccentBrush"            Color="#FF0A84FF"/>
+
+    <!-- Hover overlay (used by menu items, list items) -->
+    <SolidColorBrush x:Key="HoverOverlay"           Color="#20FFFFFF"/>
+</ResourceDictionary>

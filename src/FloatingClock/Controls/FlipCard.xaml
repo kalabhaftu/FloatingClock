@@ -1,0 +1,78 @@
+<UserControl x:Class="FloatingClock.Controls.FlipCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             SizeChanged="OnSizeChanged">
+
+    <Border x:Name="CardBorder" CornerRadius="14"
+            Background="{DynamicResource CardBackground}" ClipToBounds="True">
+        <Grid x:Name="CardGrid">
+
+            <!-- Layer 0 — New / current value (full card, behind everything) -->
+            <Viewbox Margin="8,4" Stretch="Uniform">
+                <TextBlock x:Name="BaseText"
+                           Text="00"
+                           FontFamily="Segoe UI"
+                           FontWeight="Black"
+                           FontSize="200"
+                           Foreground="{DynamicResource DigitForeground}"
+                           TextAlignment="Center"/>
+            </Viewbox>
+
+            <!-- Layer 1 — Old-value bottom half (static while animation runs) -->
+            <Border x:Name="OldBottomPanel" Visibility="Collapsed"
+                    Background="{DynamicResource CardBackground}">
+                <Viewbox Margin="8,4" Stretch="Uniform">
+                    <TextBlock x:Name="OldBottomText"
+                               Text="00"
+                               FontFamily="Segoe UI"
+                               FontWeight="Black"
+                               FontSize="200"
+                               Foreground="{DynamicResource DigitForeground}"
+                               TextAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!-- Layer 2 — Top flap (old value, clipped to top half, folds down) -->
+            <Border x:Name="TopFlap" Visibility="Collapsed"
+                    Background="{DynamicResource CardBackground}"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="TopFlapScale" ScaleY="1"/>
+                </Border.RenderTransform>
+                <Viewbox Margin="8,4" Stretch="Uniform">
+                    <TextBlock x:Name="TopFlapText"
+                               Text="00"
+                               FontFamily="Segoe UI"
+                               FontWeight="Black"
+                               FontSize="200"
+                               Foreground="{DynamicResource DigitForeground}"
+                               TextAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!-- Layer 3 — Bottom flap (new value, clipped to bottom half, unfolds) -->
+            <Border x:Name="BottomFlap" Visibility="Collapsed"
+                    Background="{DynamicResource CardBackground}"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="BottomFlapScale" ScaleY="0"/>
+                </Border.RenderTransform>
+                <Viewbox Margin="8,4" Stretch="Uniform">
+                    <TextBlock x:Name="BottomFlapText"
+                               Text="00"
+                               FontFamily="Segoe UI"
+                               FontWeight="Black"
+                               FontSize="200"
+                               Foreground="{DynamicResource DigitForeground}"
+                               TextAlignment="Center"/>
+                </Viewbox>
+            </Border>
+
+            <!-- Divider line (always on top) -->
+            <Rectangle Height="2" VerticalAlignment="Center"
+                       Fill="{DynamicResource CardDivider}"
+                       IsHitTestVisible="False"
+                       Panel.ZIndex="10"/>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,141 @@
+<Window x:Class="FloatingClock.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Timezone Settings"
+        Icon="/Assets/app.ico"
+        Width="520" Height="460"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Border CornerRadius="16"
+            Background="{DynamicResource SettingsBackground}"
+            BorderBrush="{DynamicResource SettingsBorder}"
+            BorderThickness="1"
+            Padding="24"
+            Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.45" Direction="270"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                <RowDefinition Height="*"/>    <!-- Timezone List -->
+                <RowDefinition Height="Auto"/> <!-- Add/Remove Controls -->
+                <RowDefinition Height="Auto"/> <!-- Footer Actions -->
+            </Grid.RowDefinitions>
+
+            <!-- ═══ Title Bar ═══ -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Timezone Settings"
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsForeground}"/>
+                    <TextBlock Text="Scroll mouse wheel on clock to switch between added zones"
+                               FontSize="12"
+                               Foreground="{DynamicResource InfoForeground}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Style="{StaticResource TopCloseButton}"
+                        VerticalAlignment="Top"
+                        ToolTip="Close"
+                        Click="Cancel_Click">
+                    <Path Data="M 2,2 L 10,10 M 10,2 L 2,10"
+                          Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                          StrokeThickness="1.5"
+                          Stretch="Uniform" Width="10" Height="10"/>
+                </Button>
+            </Grid>
+
+            <!-- ═══ Active Timezones List ═══ -->
+            <Grid Grid.Row="1" Margin="0,0,0,14">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Configured Timezones:"
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource SettingsForeground}"
+                           Margin="0,0,0,6"/>
+
+                <ListBox Grid.Row="1" x:Name="TimezoneListBox"
+                         DisplayMemberPath="Display"
+                         SelectionChanged="TimezoneListBox_SelectionChanged"/>
+            </Grid>
+
+            <!-- ═══ Add New Timezone ═══ -->
+            <Grid Grid.Row="2" Margin="0,0,0,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Add Timezone:"
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource SettingsForeground}"
+                           Margin="0,0,0,6"/>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ComboBox Grid.Column="0" x:Name="TimezoneCombo"
+                              DisplayMemberPath="Display"
+                              VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="2" Content="Add"
+                            Style="{StaticResource ModernButton}"
+                            Padding="16,6"
+                            Click="Add_Click"/>
+
+                    <Button Grid.Column="4" Content="Remove"
+                            Style="{StaticResource ModernButton}"
+                            Padding="16,6"
+                            Click="Remove_Click"/>
+                </Grid>
+            </Grid>
+
+            <!-- ═══ Bottom Footer Actions ═══ -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="Set as Active"
+                        Style="{StaticResource ModernButton}"
+                        Click="SetActive_Click"
+                        ToolTip="Set selected item as the current clock timezone"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Save"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="22,7" Margin="0,0,10,0"
+                            Click="OK_Click"/>
+                    <Button Content="Cancel"
+                            Style="{StaticResource ModernButton}"
+                            Padding="18,7"
+                            Click="Cancel_Click"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
