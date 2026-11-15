@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using FloatingClock.Models;
 using FloatingClock.Services;
+using Microsoft.Win32;
 using AppThemeMode = FloatingClock.Models.ThemeMode;
 
 namespace FloatingClock;
@@ -17,6 +18,12 @@ public partial class MainWindow : Window
     private string _lastHours   = "";
     private string _lastMinutes = "";
     private int _currentTzIndex;
+    private TrayIconService? _trayService;
+
+    public bool IsAlwaysOnTop => _settings.AlwaysOnTop;
+    public bool IsShowInTaskbar => _settings.ShowInTaskbar;
+    public AppThemeMode CurrentTheme => _settings.Theme;
+    public TimeFormatMode CurrentFormat => _settings.TimeFormat;
 
     public MainWindow()
     {
@@ -35,20 +42,50 @@ public partial class MainWindow : Window
         MouseWheel += OnMouseWheel;
         Closing    += OnClosing;
         Loaded     += (_, _) => ErrorLogger.LogInfo("Main window loaded.");
+
+        SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
     }
 
-    // ──────────── settings ────────────
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        try
+        {
+            _trayService = new TrayIconService(this);
+        }
+        catch (Exception ex)
+        {
+            ErrorLogger.LogError(ex, "Failed to initialize tray icon service");
+        }
+    }
+
+    // ──────────── settings & display ────────────
 
     private void ApplySettings()
     {
         Topmost = _settings.AlwaysOnTop;
         AlwaysOnTopMenuItem.IsChecked = _settings.AlwaysOnTop;
+        ShowInTaskbar = _settings.ShowInTaskbar;
+        ShowInTaskbarMenuItem.IsChecked = _settings.ShowInTaskbar;
         UpdatePinVisual();
 
-        if (!double.IsNaN(_settings.WindowLeft))  Left   = _settings.WindowLeft;
-        if (!double.IsNaN(_settings.WindowTop))    Top    = _settings.WindowTop;
-        Width  = Math.Max(MinWidth, _settings.WindowWidth);
-        Height = Math.Max(MinHeight, _settings.WindowHeight);
+        double width  = Math.Max(MinWidth, _settings.WindowWidth);
+        double height = Math.Max(MinHeight, _settings.WindowHeight);
+        double left   = _settings.WindowLeft;
+        double top    = _settings.WindowTop;
+
+        // Multi-monitor position validation: detect disconnected monitors and reposition safely
+        if (ScreenHelper.EnsureVisible(ref left, ref top, width, height))
+        {
+            _settings.WindowLeft = left;
+            _settings.WindowTop = top;
+            _settings.Save();
+        }
+
+        Left = left;
+        Top = top;
+        Width = width;
+        Height = height;
 
         TwelveHourMenuItem.IsChecked     = _settings.TimeFormat == TimeFormatMode.TwelveHour;
         TwentyFourHourMenuItem.IsChecked = _settings.TimeFormat == TimeFormatMode.TwentyFourHour;
@@ -62,6 +99,33 @@ public partial class MainWindow : Window
         _currentTzIndex = Math.Clamp(
             _settings.SelectedTimezoneIndex, 0,
             Math.Max(0, _settings.Timezones.Count - 1));
+    }
+
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            try
+            {
+                double left = Left;
+                double top = Top;
+                double width = ActualWidth > 0 ? ActualWidth : Width;
+                double height = ActualHeight > 0 ? ActualHeight : Height;
+
+                if (ScreenHelper.EnsureVisible(ref left, ref top, width, height))
+                {
+                    Left = left;
+                    Top = top;
+                    _settings.WindowLeft = left;
+                    _settings.WindowTop = top;
+                    _settings.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.LogError(ex, "Display settings change handling failed");
+            }
+        });
     }
 
     private void UpdatePinVisual()
@@ -121,6 +185,12 @@ public partial class MainWindow : Window
             AmPmText.Visibility = _settings.TimeFormat == TimeFormatMode.TwelveHour
                                       ? Visibility.Visible : Visibility.Collapsed;
             TimezoneText.Text = tzLabel;
+
+            // Update tray tooltip
+            var tip = string.IsNullOrEmpty(tzLabel)
+                ? $"Floating Clock - {hours}:{minutes} {amPm}".Trim()
+                : $"Floating Clock - {hours}:{minutes} {amPm} ({tzLabel})".Trim();
+            _trayService?.UpdateTooltip(tip);
         }
         catch (Exception ex)
         {
@@ -149,13 +219,94 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ToggleAlwaysOnTop()
+    public void ToggleAlwaysOnTop()
     {
         _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
         Topmost = _settings.AlwaysOnTop;
         AlwaysOnTopMenuItem.IsChecked = _settings.AlwaysOnTop;
         UpdatePinVisual();
         _settings.Save();
+    }
+
+    public void ToggleShowInTaskbar()
+    {
+        _settings.ShowInTaskbar = !_settings.ShowInTaskbar;
+        ShowInTaskbar = _settings.ShowInTaskbar;
+        ShowInTaskbarMenuItem.IsChecked = _settings.ShowInTaskbar;
+        _settings.Save();
+    }
+
+    public void ChangeTheme(AppThemeMode mode)
+    {
+        _settings.Theme = mode;
+        DarkThemeMenuItem.IsChecked   = _settings.Theme == AppThemeMode.Dark;
+        LightThemeMenuItem.IsChecked  = _settings.Theme == AppThemeMode.Light;
+        SystemThemeMenuItem.IsChecked = _settings.Theme == AppThemeMode.System;
+        ThemeManager.ApplyTheme(_settings.Theme);
+        UpdatePinVisual();
+        _settings.Save();
+    }
+
+    public void ChangeFormat(TimeFormatMode mode)
+    {
+        _settings.TimeFormat = mode;
+        TwelveHourMenuItem.IsChecked     = _settings.TimeFormat == TimeFormatMode.TwelveHour;
+        TwentyFourHourMenuItem.IsChecked = _settings.TimeFormat == TimeFormatMode.TwentyFourHour;
+        _lastHours = "";
+        UpdateClock();
+        _settings.Save();
+    }
+
+    public void OpenTimezonesDialog()
+    {
+        var win = new Windows.SettingsWindow(_settings) { Owner = this };
+        if (win.ShowDialog() == true)
+        {
+            _settings = win.Settings;
+            _currentTzIndex = Math.Clamp(_settings.SelectedTimezoneIndex, 0,
+                Math.Max(0, _settings.Timezones.Count - 1));
+            _lastHours = _lastMinutes = "";
+            ApplySettings();
+            UpdateClock();
+            _settings.Save();
+        }
+    }
+
+    public void OpenLogFolder()
+    {
+        try { Process.Start("explorer.exe", ErrorLogger.GetLogDirectory()); }
+        catch (Exception ex) { ErrorLogger.LogError(ex, "Open log folder failed"); }
+    }
+
+    public void RestoreAndActivate()
+    {
+        if (Visibility != Visibility.Visible)
+            Visibility = Visibility.Visible;
+
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+
+        // Ensure visible in case monitor was disconnected while minimized
+        double left = Left;
+        double top = Top;
+        double width = ActualWidth > 0 ? ActualWidth : Width;
+        double height = ActualHeight > 0 ? ActualHeight : Height;
+        if (ScreenHelper.EnsureVisible(ref left, ref top, width, height))
+        {
+            Left = left;
+            Top = top;
+            _settings.WindowLeft = left;
+            _settings.WindowTop = top;
+            _settings.Save();
+        }
+
+        Activate();
+        Topmost = _settings.AlwaysOnTop;
+    }
+
+    public void MinimizeToTray()
+    {
+        Visibility = Visibility.Hidden;
     }
 
     private void PinButton_Click(object sender, RoutedEventArgs e)
@@ -165,7 +316,7 @@ public partial class MainWindow : Window
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState.Minimized;
+        MinimizeToTray();
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -182,7 +333,10 @@ public partial class MainWindow : Window
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _timer.Stop();
+        _trayService?.Dispose();
+
         _settings.WindowLeft   = Left;
         _settings.WindowTop    = Top;
         _settings.WindowWidth  = Width;
@@ -195,59 +349,46 @@ public partial class MainWindow : Window
 
     private void AlwaysOnTop_Click(object sender, RoutedEventArgs e)
     {
-        _settings.AlwaysOnTop = AlwaysOnTopMenuItem.IsChecked;
-        Topmost = _settings.AlwaysOnTop;
-        UpdatePinVisual();
-        _settings.Save();
+        ToggleAlwaysOnTop();
+    }
+
+    private void ShowInTaskbar_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleShowInTaskbar();
     }
 
     private void Theme_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.MenuItem { Tag: string tag }) return;
-        _settings.Theme = tag switch
+        var mode = tag switch
         {
             "Light"  => AppThemeMode.Light,
             "System" => AppThemeMode.System,
             _        => AppThemeMode.Dark
         };
-        DarkThemeMenuItem.IsChecked   = _settings.Theme == AppThemeMode.Dark;
-        LightThemeMenuItem.IsChecked  = _settings.Theme == AppThemeMode.Light;
-        SystemThemeMenuItem.IsChecked = _settings.Theme == AppThemeMode.System;
-        ThemeManager.ApplyTheme(_settings.Theme);
-        UpdatePinVisual();
-        _settings.Save();
+        ChangeTheme(mode);
     }
 
     private void Format_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.MenuItem { Tag: string tag }) return;
-        _settings.TimeFormat = tag == "Twelve" ? TimeFormatMode.TwelveHour : TimeFormatMode.TwentyFourHour;
-        TwelveHourMenuItem.IsChecked     = _settings.TimeFormat == TimeFormatMode.TwelveHour;
-        TwentyFourHourMenuItem.IsChecked = _settings.TimeFormat == TimeFormatMode.TwentyFourHour;
-        _lastHours = "";
-        UpdateClock();
-        _settings.Save();
+        var mode = tag == "Twelve" ? TimeFormatMode.TwelveHour : TimeFormatMode.TwentyFourHour;
+        ChangeFormat(mode);
     }
 
     private void Timezones_Click(object sender, RoutedEventArgs e)
     {
-        var win = new Windows.SettingsWindow(_settings) { Owner = this };
-        if (win.ShowDialog() == true)
-        {
-            _settings = win.Settings;
-            _currentTzIndex = Math.Clamp(_settings.SelectedTimezoneIndex, 0,
-                Math.Max(0, _settings.Timezones.Count - 1));
-            _lastHours = _lastMinutes = "";
-            ApplySettings();
-            UpdateClock();
-            _settings.Save();
-        }
+        OpenTimezonesDialog();
+    }
+
+    private void MinimizeToTray_Click(object sender, RoutedEventArgs e)
+    {
+        MinimizeToTray();
     }
 
     private void OpenLogFolder_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start("explorer.exe", ErrorLogger.GetLogDirectory()); }
-        catch (Exception ex) { ErrorLogger.LogError(ex, "Open log folder failed"); }
+        OpenLogFolder();
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();

@@ -25,6 +25,7 @@ public partial class SettingsWindow : Window
             Theme                 = settings.Theme,
             TimeFormat            = settings.TimeFormat,
             AlwaysOnTop           = settings.AlwaysOnTop,
+            ShowInTaskbar         = settings.ShowInTaskbar,
             Timezones             = new(settings.Timezones),
             SelectedTimezoneIndex = settings.SelectedTimezoneIndex,
             WindowLeft            = settings.WindowLeft,

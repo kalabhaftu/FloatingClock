@@ -2,7 +2,9 @@
 ; Builds a clean Windows installer with optional desktop & startup shortcuts
 
 #define MyAppName "Floating Clock"
-#define MyAppVersion "1.0.0"
+#ifndef MyAppVersion
+#define MyAppVersion "1.1.0"
+#endif
 #define MyAppPublisher "FloatingClock"
 #define MyAppExeName "FloatingClock.exe"
 
@@ -21,7 +23,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern
 SetupIconFile=..\src\FloatingClock\Assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion={#MyAppVersion}.0
 VersionInfoTextVersion={#MyAppVersion}
 VersionInfoDescription=Floating Clock Setup
 CloseApplications=yes

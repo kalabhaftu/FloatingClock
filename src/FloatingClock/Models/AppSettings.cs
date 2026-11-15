@@ -14,6 +14,7 @@ public class AppSettings
     public ThemeMode Theme { get; set; } = ThemeMode.Dark;
     public TimeFormatMode TimeFormat { get; set; } = TimeFormatMode.TwelveHour;
     public bool AlwaysOnTop { get; set; } = true;
+    public bool ShowInTaskbar { get; set; } = true;
     public List<string> Timezones { get; set; } = new() { TimeZoneInfo.Local.Id };
     public int SelectedTimezoneIndex { get; set; }
     public double WindowLeft { get; set; } = double.NaN;

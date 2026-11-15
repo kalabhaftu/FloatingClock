@@ -23,6 +23,9 @@
             <MenuItem x:Name="AlwaysOnTopMenuItem" Header="Always On Top"
                       IsCheckable="True" IsChecked="True"
                       Click="AlwaysOnTop_Click"/>
+            <MenuItem x:Name="ShowInTaskbarMenuItem" Header="Show in Taskbar"
+                      IsCheckable="True" IsChecked="True"
+                      Click="ShowInTaskbar_Click"/>
             <Separator/>
             <MenuItem Header="Theme">
                 <MenuItem x:Name="DarkThemeMenuItem"   Header="Dark"   Click="Theme_Click" Tag="Dark"/>
@@ -35,6 +38,7 @@
             </MenuItem>
             <Separator/>
             <MenuItem Header="Timezones…" Click="Timezones_Click"/>
+            <MenuItem Header="Minimize to Tray" Click="MinimizeToTray_Click"/>
             <MenuItem Header="Open Log Folder" Click="OpenLogFolder_Click"/>
             <Separator/>
             <MenuItem Header="Exit" Click="Exit_Click"/>

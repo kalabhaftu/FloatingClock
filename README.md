@@ -8,10 +8,18 @@ A clean, minimalist floating split-flap flip clock for Windows inspired by mobil
 
 - **Split-Flap Animation:** Realistic flip card animation folding the old digit down and unfolding the new digit.
 - **Modern Rounded Window:** Borderless, clean rounded corners with subtle theme border and no sharp edges.
+- **Multi-Monitor Aware & Disconnected Display Recovery:**
+  - Automatically remembers screen placement across reboots.
+  - Detects if an external monitor was disconnected and gracefully repositions the clock back to your primary/internal screen instead of opening off-screen.
+  - Dynamically adapts if a monitor is plugged or unplugged while running.
+- **System Tray (Notification Area) & Taskbar Toggle:**
+  - Runs in the Windows system tray with live time tooltip.
+  - **"Show in Taskbar" toggle:** Hide the taskbar button so the clock floats cleanly on your desktop without cluttering your Windows taskbar.
+  - Left-click tray icon to toggle show/hide; right-click for full context menu.
 - **Top Controls on Hover:** Action bar smoothly fades in at the top right when hovering:
   - 📌 **Pin (Always On Top):** Toggle floating on top of all windows (or double-click anywhere on the clock).
   - ⚙️ **Settings & Timezones:** Open the timezone manager.
-  - ➖ **Minimize:** Minimize to Windows taskbar.
+  - ➖ **Minimize:** Minimize to system tray.
   - ✕ **Close:** Close the app (turns red on hover).
 - **Multi-Timezone Support with DST:**
   - Formatted city & offset display: `New York (UTC-4)`, `London (UTC)`, `Tokyo (UTC+9)`, etc.
@@ -50,11 +58,11 @@ A clean, minimalist floating split-flap flip clock for Windows inspired by mobil
 ### Build
 Run the one-click build script:
 ```powershell
-.\build.ps1 -Version "1.0.0"
+.\build.ps1 -Version "1.1.0"
 ```
 This produces:
 - Published application: `publish\`
-- Windows installer: `output\FloatingClockSetup-v1.0.0.exe`
+- Windows installer: `output\FloatingClockSetup-v1.1.0.exe`
 
 ## 📄 License
 MIT License.
