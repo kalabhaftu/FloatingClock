@@ -58,11 +58,11 @@ A clean, minimalist floating split-flap flip clock for Windows inspired by mobil
 ### Build
 Run the one-click build script:
 ```powershell
-.\build.ps1 -Version "1.1.0"
+.\build.ps1 -Version "1.1.1"
 ```
 This produces:
 - Published application: `publish\`
-- Windows installer: `output\FloatingClockSetup-v1.1.0.exe`
+- Windows installer: `output\FloatingClockSetup-v1.1.1.exe`
 
 ## 📄 License
 MIT License.

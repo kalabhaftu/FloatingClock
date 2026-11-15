@@ -7,6 +7,7 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
+        ShowInTaskbar="False"
         MinWidth="200" MinHeight="110"
         Width="640" Height="320"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">

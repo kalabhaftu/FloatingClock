@@ -1,7 +1,7 @@
 ﻿# Floating Clock — Build & Package Script
 # Usage: .\build.ps1 [-Version <string>]
 param(
-    [string]$Version = "1.1.0"
+    [string]$Version = "1.1.1"
 )
 
 $ErrorActionPreference = "Stop"
